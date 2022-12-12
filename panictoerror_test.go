@@ -5,46 +5,86 @@ import (
 	"testing"
 )
 
-func Func1() (res string, err error) {
+func Func_no_panic() (err error) {
 	defer func() {
 		PanicToError(recover(), &err)
 	}()
-	return "qwerty", nil
+	return nil
 }
 
-func TestPanicToError1(t *testing.T) {
-	_, err := Func1()
+func TestPanicToError_no_panic(t *testing.T) {
+	err := Func_no_panic()
 	if err != nil {
-		t.Errorf("PanicToError1: err != nil")
+		t.Errorf("PanicToError_no_panic: err != nil")
 	}
 }
 
-var ErrFunc2 = errors.New("Func2")
+var err_func_error = errors.New("func_error")
 
-func Func2() (res int, err error) {
+func func_error() (err error) {
 	defer func() {
 		PanicToError(recover(), &err)
 	}()
-	panic(ErrFunc2)
+	panic(err_func_error)
 }
 
-func TestPanicToError2(t *testing.T) {
-	_, err := Func2()
-	if err != ErrFunc2 {
-		t.Errorf("PanicToError2: err != ErrFunc2")
+func TestPanicToError_error(t *testing.T) {
+	err := func_error()
+	if err != err_func_error {
+		t.Errorf("PanicToError_error: err != err_func_error")
 	}
 }
 
-func Func3() (res bool, err error) {
+func func_string() (err error) {
 	defer func() {
 		PanicToError(recover(), &err)
 	}()
-	panic("Func3")
+	panic("func_string")
 }
 
-func TestPanicToError3(t *testing.T) {
-	_, err := Func3()
-	if err.Error() != "Func3" {
-		t.Errorf(`PanicToError3: err != "Func3"`)
+func TestPanicToError_string(t *testing.T) {
+	err := func_string()
+	if err.Error() != "func_string" {
+		t.Errorf(`PanicToError_string: err != "func_string"`)
+	}
+}
+
+type stringer string
+
+func (s stringer) String() string {
+	return string(s)
+}
+
+func func_Stringer() (err error) {
+	defer func() {
+		PanicToError(recover(), &err)
+	}()
+	panic(stringer("func_Stringer"))
+}
+
+func TestPanicToError_Stringer(t *testing.T) {
+	err := func_Stringer()
+	if err.Error() != "func_Stringer" {
+		t.Errorf(`PanicToError_Stringer: err != "func_Stringer"`)
+	}
+}
+
+type textMarshaler string
+
+func (t textMarshaler) MarshalText() ([]byte, error) {
+	return []byte(t), nil
+}
+
+func func_TextMarshaler() (err error) {
+	defer func() {
+		PanicToError(recover(), &err)
+	}()
+	panic(textMarshaler("func_TextMarshaler"))
+}
+
+func TestPanicToError_TextMarshaler(t *testing.T) {
+	err := func_TextMarshaler()
+	if err.Error() != "func_TextMarshaler" {
+		t.Errorf(`PanicToError_TextMarshaler: err != "func_TextMarshaler"`)
 	}
 }
